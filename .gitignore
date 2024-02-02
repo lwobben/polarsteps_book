@@ -1,0 +1,4 @@
+data/*
+!data/.gitkeep
+poetry.lock
+.DS_Store
