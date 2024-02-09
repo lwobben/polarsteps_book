@@ -8,6 +8,7 @@ import shapely
 from fpdf import FPDF
 import io
 from typing import Optional, Union
+import os
 
 
 # Load data and create gdf's
@@ -42,8 +43,7 @@ buf.seek(0)
 # Define Photobook class
 class PhotoBook(FPDF):
     def __init__(self, font: str = "helvetica", title: str = "My photobook"):
-        FPDF.__init__(self)
-        self.page_add()
+        super().__init__()
         self.set_font('helvetica', size=12)
         self.title_add(title)
 
@@ -51,12 +51,15 @@ class PhotoBook(FPDF):
         self.add_page()
 
     def title_add(self, title: str):
+        self.page_add()
         self.cell(text=title)
 
-    def image_add(self, image: Union[str, io.BytesIO]):
+    def image_add(self, image: Union[str, io.BytesIO], page_add=True):
+        if page_add:
+            self.page_add()
         self.image(image, x=20, y=60, h=self.eph/2, keep_aspect_ratio=True)
 
-    def create_output(self, path: str=None) -> Optional[bytes]:
+    def create_output(self, path: str=None) -> Optional[bytearray]:
         if path:
             self.output(path)
         else:
@@ -65,6 +68,13 @@ class PhotoBook(FPDF):
 # Create and save photobook pdf
 photo_book = PhotoBook()
 photo_book.image_add(buf)
-photo_book.page_add()
-photo_book.image_add("data/zuid-india/alappuzha_88326961/photos/7BC50DA2-BCFB-41C7-AFC3-720A56923B2D_229F9E6B-64C4-47C4-979F-3F08E2D5B86C.jpg.jpg")
+regions = os.listdir("data/zuid-india/")
+for r in regions:
+    path = f"data/zuid-india/{r}/photos/"
+    if os.path.isdir(path):
+        photo_book.title_add(r)
+        # now add reisverhaal
+        photo_files = os.listdir(path)
+        for cnt, f in enumerate(photo_files):
+            photo_book.image_add(path+f, page_add=cnt!=0)
 photo_book.create_output(path="data/photo-book.pdf")
