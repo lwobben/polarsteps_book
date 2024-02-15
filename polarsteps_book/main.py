@@ -11,7 +11,9 @@ from typing import Optional, Union
 import os
 
 
-# Load data and create gdf's
+
+
+print("* Loading data and creating gdf's")
 data = json.load(open("data/zuid-india/locations.json"))
 df = pd.json_normalize(data, record_path="locations")
 df['geometry'] = gpd.points_from_xy(df.lon, df.lat)
@@ -23,13 +25,13 @@ gdf_line = gpd.GeoDataFrame(pd.DataFrame({"geometry": [line_string]}))
 # world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
 # map_gdf = gpd.read_file('data/ne_110m_admin_0_countries.zip', engine="pyogrio")
 
-# Set projections
+print("* Setting projections")
 gdf_points.crs = {'init': 'epsg:4326'}
 gdf_points = gdf_points.to_crs(epsg=3857)
 gdf_line.crs = {'init': 'epsg:4326'}
 gdf_line = gdf_line.to_crs(epsg=3857)
 
-# Plot & save as file-like fig
+print("* Plotting & saving as file-like fig")
 f, ax = plt.subplots()
 # map_gdf.plot(ax=ax)
 gdf_points.plot(ax=ax,figsize=(10, 5))
@@ -42,21 +44,26 @@ buf.seek(0)
 
 # Define Photobook class
 class PhotoBook(FPDF):
-    def __init__(self, font: str = "helvetica", title: str = "My photobook"):
+    def __init__(self, font_path: str = "FreeSerif.otf", title: str = "My photobook"):
         super().__init__()
-        self.set_font('helvetica', size=12)
-        self.title_add(title)
+        font_name = ''.join(filter(str.isalpha, font_path))
+        self.add_font(font_name, '', font_path)
+        self.set_font(font_name, size=12)
+        self.text_page(title=title)
 
-    def page_add(self):
+    def text_page(self, title: str=None, body: str=None):
         self.add_page()
+        if title:
+            self.set_font(size=16)
+            self.multi_cell(w=0, text=title, new_y="Next")
+            self.ln()
+            self.set_font(size=12)
+        if body:
+            self.multi_cell(w=0, text=body)
 
-    def title_add(self, title: str):
-        self.page_add()
-        self.cell(text=title)
-
-    def image_add(self, image: Union[str, io.BytesIO], page_add=True):
+    def image_page(self, image: Union[str, io.BytesIO], page_add=True):
         if page_add:
-            self.page_add()
+            self.add_page()
         self.image(image, x=20, y=60, h=self.eph/2, keep_aspect_ratio=True)
 
     def create_output(self, path: str=None) -> Optional[bytearray]:
@@ -65,16 +72,25 @@ class PhotoBook(FPDF):
         else:
             return self.output() #still need to test!
 
-# Create and save photobook pdf
+print("* Creating and saving photobook pdf")
 photo_book = PhotoBook()
-photo_book.image_add(buf)
-regions = os.listdir("data/zuid-india/")
-for r in regions:
+photo_book.image_page(buf)
+path = "data/zuid-india/"
+regions = [r for r in os.listdir(path) if os.path.isdir(path+r)]
+regions.sort(key=lambda x: x.split("_")[1])
+steps = json.load(open("data/zuid-india/trip.json"))["all_steps"]
+
+for cnt, r in enumerate(regions):
     path = f"data/zuid-india/{r}/photos/"
     if os.path.isdir(path):
-        photo_book.title_add(r)
-        # now add reisverhaal
+        step=steps[cnt]
+        photo_book.text_page(body=step["description"], title=step["display_name"])
         photo_files = os.listdir(path)
-        for cnt, f in enumerate(photo_files):
-            photo_book.image_add(path+f, page_add=cnt!=0)
+        for f in photo_files:
+            photo_book.image_page(path+f)
 photo_book.create_output(path="data/photo-book.pdf")
+
+
+class TripData():
+    def __init__():
+        path: str = "data"
