@@ -6,18 +6,18 @@ import shapely
 import matplotlib.pyplot as plt
 import io
 import json
+from trip_data import Locations
 
 
 class GeoMap:
-    def __init__(self, path):
+    def __init__(self, path, locations):
         self.path = path
+        self.locations = locations
 
     def create_buf(self) -> io.BytesIO:
-        print("* Loading data and creating gdf's")
-        data = json.load(open(f"{self.path}locations.json"))
-        df = pd.json_normalize(data, record_path="locations")
-        df['geometry'] = gpd.points_from_xy(df.lon, df.lat)
-        gdf_points = gpd.GeoDataFrame(df.drop(['lon', 'lat'], axis=1))
+        frame = {'geometry': gpd.points_from_xy(self.locations.lon, self.locations.lat)}
+        df = pd.DataFrame(frame)
+        gdf_points = gpd.GeoDataFrame(df)
         line_string = shapely.LineString(gdf_points.geometry.tolist())
         gdf_line = gpd.GeoDataFrame(pd.DataFrame({"geometry": [line_string]}))
 

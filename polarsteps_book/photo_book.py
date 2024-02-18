@@ -10,7 +10,7 @@ class PhotoBook(PDFFile):
         self.path = path
     
     def add_geo_map(self):
-        geo_map = GeoMap(self.path)
+        geo_map = GeoMap(self.path, self.data.locations)
         buf = geo_map.create_buf()
         self.image_page(buf)
 
