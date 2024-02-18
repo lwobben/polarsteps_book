@@ -2,3 +2,4 @@ data/*
 !data/.gitkeep
 poetry.lock
 .DS_Store
+__pycache__/
