@@ -31,7 +31,7 @@ class TripData(ABC):
 class PolarStepsData(TripData):
     def __init__(self, path: str, title: str = None):
         self.create_steps(path)
-        self._title = title if title else path.split("/")[-1]
+        self._title = title if title else path.split("/")[-2].title()
 
     @property
     def title(self) -> str:
