@@ -10,14 +10,12 @@ from trip_data import Locations
 
 
 class GeoMap:
-    def __init__(self, path, locations):
-        self.path = path
+    def __init__(self, locations):
         self.locations = locations
 
     def create_buf(self) -> io.BytesIO:
         frame = {'geometry': gpd.points_from_xy(self.locations.lon, self.locations.lat)}
-        df = pd.DataFrame(frame)
-        gdf_points = gpd.GeoDataFrame(df)
+        gdf_points = gpd.GeoDataFrame(pd.DataFrame(frame))
         line_string = shapely.LineString(gdf_points.geometry.tolist())
         gdf_line = gpd.GeoDataFrame(pd.DataFrame({"geometry": [line_string]}))
 
