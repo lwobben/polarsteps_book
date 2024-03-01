@@ -1,4 +1,5 @@
 import os
+
 from PIL import Image
 
 # test file to experiment with making photo collages
@@ -9,7 +10,7 @@ def make_collage(images, filename, width, init_height):
     Make a collage image with a width equal to `width` from `images` and save to `filename`.
     """
     if not images:
-        print('No images for collage found!')
+        print("No images for collage found!")
         return False
 
     margin_size = 2
@@ -50,10 +51,10 @@ def make_collage(images, filename, width, init_height):
         if imgs_line:
             out_height += int(init_height / coef) + margin_size
     if not out_height:
-        print('Height of collage could not be 0!')
+        print("Height of collage could not be 0!")
         return False
 
-    collage_image = Image.new('RGB', (width, int(out_height)), (35, 35, 35))
+    collage_image = Image.new("RGB", (width, int(out_height)), (35, 35, 35))
     # put images to the collage
     y = 0
     for coef, imgs_line in coefs_lines:
@@ -64,9 +65,13 @@ def make_collage(images, filename, width, init_height):
                 # if need to enlarge an image - use `resize`, otherwise use `thumbnail`, it's faster
                 k = (init_height / coef) / img.size[1]
                 if k > 1:
-                    img = img.resize((int(img.size[0] * k), int(img.size[1] * k)), Image.LANCZOS)
+                    img = img.resize(
+                        (int(img.size[0] * k), int(img.size[1] * k)), Image.LANCZOS
+                    )
                 else:
-                    img.thumbnail((int(width / coef), int(init_height / coef)), Image.LANCZOS)
+                    img.thumbnail(
+                        (int(width / coef), int(init_height / coef)), Image.LANCZOS
+                    )
                 if collage_image:
                     collage_image.paste(img, (int(x), int(y)))
                 x += img.size[0] + margin_size
@@ -75,7 +80,9 @@ def make_collage(images, filename, width, init_height):
     return True
 
 
-images_path = 'data/zuid-india/alappuzha_88326961/photos'
+images_path = "data/zuid-india/alappuzha_88326961/photos"
 files = [os.path.join(images_path, fn) for fn in os.listdir(images_path)]
-images = [fn for fn in files if os.path.splitext(fn)[1].lower() in ('.jpg', '.jpeg', '.png')]
-make_collage(images=images, filename='data/collage.png', width=1500, init_height=400)
+images = [
+    fn for fn in files if os.path.splitext(fn)[1].lower() in (".jpg", ".jpeg", ".png")
+]
+make_collage(images=images, filename="data/collage.png", width=1500, init_height=400)

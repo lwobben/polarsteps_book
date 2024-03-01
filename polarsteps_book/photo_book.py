@@ -1,6 +1,6 @@
+from geo_map import GeoMap
 from pdf_file import PDFFile
 from trip_data import TripData
-from geo_map import GeoMap
 
 
 class PhotoBook(PDFFile):
@@ -8,7 +8,7 @@ class PhotoBook(PDFFile):
         super().__init__(title=data.title)
         self.data = data
         self.path = path
-    
+
     def add_geo_map(self):
         geo_map = GeoMap(self.data.locations)
         buf = geo_map.create_buf()
@@ -19,6 +19,6 @@ class PhotoBook(PDFFile):
             self.text_page(body=step["description"], title=step["display_name"])
             for f in step["photo_paths"]:
                 self.image_page(f)
-    
+
     def output_book(self, output_path):
         self.create_output(path=output_path)
