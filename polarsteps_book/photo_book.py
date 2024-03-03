@@ -4,8 +4,15 @@ from trip_data import TripData
 
 
 class PhotoBook(PDFFile):
-    def __init__(self, data: TripData, path: str):
-        super().__init__(title=data.title)
+    def __init__(self, data: TripData, path: str, dev: bool = False):
+        super().__init__(
+            font_path="polarsteps_book/fonts/FreeSerif.otf",
+            title=data.title,
+            unit="mm",
+            format=(297, 297),
+            bleed=3,
+            dev=dev,
+        )
         self.data = data
         self.path = path
 

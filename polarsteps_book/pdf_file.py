@@ -1,5 +1,5 @@
 import io
-from typing import Literal, Optional, Union
+from typing import Literal, Optional, Tuple, Union
 
 from fpdf import FPDF
 from PIL import Image
@@ -8,14 +8,23 @@ from PIL import Image
 class PDFFile(FPDF):
     def __init__(
         self,
-        font_path: str = "polarsteps_book/fonts/FreeSerif.otf",
-        title: str = "My photobook",
+        font_path: str,
+        title: str,
+        unit: str,
+        format: Tuple[int, int],
+        bleed: Optional[int] = None,
+        dev: bool = False,
     ):
-        super().__init__(format=(297, 297))
+        full_format = (format[0] + bleed, format[1] + bleed) if bleed else format
+        super().__init__(unit=unit, format=full_format)
         font_name = "".join(filter(str.isalpha, font_path))
         self.add_font(font_name, "", font_path)
         self.set_font(font_name, size=12)
         self.text_page(title=title)
+        self.dev = dev
+        if self.dev and bleed:
+            pass
+            # self.rect(x=bleed, y=bleed, w=format[0], h=format[0], style="FD")
 
     def text_page(
         self,
