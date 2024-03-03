@@ -15,16 +15,27 @@ class PDFFile(FPDF):
         bleed: Optional[int] = None,
         dev: bool = False,
     ):
-        full_format = (format[0] + bleed, format[1] + bleed) if bleed else format
+        self.format = format
+        self.bleed = bleed
+        self.dev = dev
+
+        full_format = (
+            (format[0] + 2 * bleed, format[1] + 2 * bleed) if bleed else format
+        )
         super().__init__(unit=unit, format=full_format)
+
         font_name = "".join(filter(str.isalpha, font_path))
         self.add_font(font_name, "", font_path)
+
         self.set_font(font_name, size=12)
         self.text_page(title=title)
-        self.dev = dev
-        if self.dev and bleed:
-            pass
-            # self.rect(x=bleed, y=bleed, w=format[0], h=format[0], style="FD")
+
+    def base_page(self):
+        self.add_page()
+        if self.dev and self.bleed:
+            self.set_draw_color(r=255, g=0, b=0)
+            self.rect(x=self.bleed, y=self.bleed, w=self.format[0], h=self.format[0])
+            self.set_draw_color(r=0, g=0, b=0)
 
     def text_page(
         self,
@@ -32,7 +43,7 @@ class PDFFile(FPDF):
         body: str = None,
         align: Literal["J", "L", "R", "C"] = "C",
     ):
-        self.add_page()
+        self.base_page()
         if title:
             self.set_font(size=16)
             self.multi_cell(w=0, text=title, new_y="Next", align=align)
@@ -43,7 +54,7 @@ class PDFFile(FPDF):
 
     def image_page(self, image: Union[str, io.BytesIO], page_add=True):
         if page_add:
-            self.add_page()
+            self.base_page()
         with Image.open(image) as im:
             w, h = im.size
             if w > 1.15 * h:
