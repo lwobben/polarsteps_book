@@ -25,9 +25,7 @@ class PhotoBook(PDFFile):
         for step in self.data.steps:
             self.text_page(body=step["description"], title=step["display_name"])
             for i in range(0, len(step["photo_paths"]), 2):
-                print(i, "of", len(step["photo_paths"]))
                 if i + 1 == len(step["photo_paths"]):
-                    print("yes")
                     self.image_page(step["photo_paths"][i])
                     break
                 else:

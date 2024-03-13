@@ -28,7 +28,7 @@ class ImageFile:
         else:
             print(
                 "Error! at least one of target_width & target_height should be given!!!"
-            )
+            )  # make actual error instead of print
 
 
 class PDFFile(FPDF):
@@ -40,10 +40,12 @@ class PDFFile(FPDF):
         format: Tuple[int, int],  # width, height
         bleed: Optional[int] = None,
         dev: bool = False,
+        margin: int = 25,
     ):
         self.format = format
         self.bleed = bleed
         self.dev = dev
+        self.margin = margin
 
         self.full_format = (
             (format[0] + 2 * bleed, format[1] + 2 * bleed) if bleed else format
@@ -78,24 +80,28 @@ class PDFFile(FPDF):
         if body:
             self.multi_cell(w=0, text=body, align=align)
 
-    def image_page(self, image: Union[str, io.BytesIO], page_add=True):
-        if page_add:
-            self.base_page()
-        with Image.open(image) as im:
-            w, h = im.size
-            if w > 1.15 * h:
-                print("Treat as landscape")
-            elif h > 1.15 * w:
-                print("Treat as portrait")
-            else:
-                print("Treat as square")
-        self.image(image, x=20, y=60, h=self.eph / 2, keep_aspect_ratio=True)
+    def image_page(self, image: Union[str, io.BytesIO]):
+        img = ImageFile(image)
+        self.base_page()
+
+        if img.w_h_ratio > 1:  # landscape
+            img.set_target_size(target_width=self.full_format[0] - 2 * self.margin)
+            y_start = self.full_format[1] / 2 - img.target_h / 2
+            self.image(
+                image, x=self.margin, y=y_start, h=img.target_h, keep_aspect_ratio=True
+            )
+
+        if img.w_h_ratio <= 1:  # portrait/square
+            img.set_target_size(target_height=self.full_format[1] - 2 * self.margin)
+            x_start = self.full_format[0] / 2 - img.target_w / 2
+            self.image(
+                image, x=x_start, y=self.margin, h=img.target_h, keep_aspect_ratio=True
+            )
 
     def two_images_page(
         self,
         image1: Union[str, io.BytesIO],
         image2: Union[str, io.BytesIO],
-        margin=25,
         sep=3,
     ):
         img1 = ImageFile(image1)
@@ -103,27 +109,53 @@ class PDFFile(FPDF):
         self.base_page()
 
         if all(im.w_h_ratio > 1 for im in [img1, img2]):  # stack vertically
-            y_image_space = self.full_format[1] - 2 * margin - sep
-            total_height_original = img1.h + img2.h
+            equalizer = img2.w / img1.w
+            y_image_space = self.full_format[1] - 2 * self.margin - sep
+            total_height_original = img1.h * equalizer + img2.h
             img1.set_target_size(
-                target_height=(img1.h * y_image_space) / total_height_original
+                target_height=(img1.h * equalizer * y_image_space)
+                / total_height_original
             )
             img2.set_target_size(target_height=y_image_space - img1.target_h)
             x_start = self.full_format[0] / 2 - img1.target_w / 2
             self.image(
-                img1.image, x=x_start, y=margin, h=img1.target_h, keep_aspect_ratio=True
+                img1.image,
+                x=x_start,
+                y=self.margin,
+                h=img1.target_h,
+                keep_aspect_ratio=True,
             )
             self.image(
                 img2.image,
                 x=x_start,
-                y=margin + img1.target_h + sep,
+                y=self.margin + img1.target_h + sep,
                 h=img2.target_h,
                 keep_aspect_ratio=True,
             )
 
-        else:  # stack horizontally - improve!!
-            self.image(img1.image, x=margin, y=80, w=125, keep_aspect_ratio=True)
-            self.image(img2.image, x=150, y=80, w=125, keep_aspect_ratio=True)
+        else:  # stack horizontally
+            equalizer = img2.h / img1.h
+            x_image_space = self.full_format[0] - 2 * self.margin - sep
+            total_width_original = img1.w * equalizer + img2.w
+            img1.set_target_size(
+                target_width=(img1.w * equalizer * x_image_space) / total_width_original
+            )
+            img2.set_target_size(target_width=x_image_space - img1.target_w)
+            y_start = self.full_format[1] / 2 - img1.target_h / 2
+            self.image(
+                img1.image,
+                x=self.margin,
+                y=y_start,
+                h=img1.target_h,
+                keep_aspect_ratio=True,
+            )
+            self.image(
+                img2.image,
+                x=self.margin + img1.target_w + sep,
+                y=y_start,
+                h=img2.target_h,
+                keep_aspect_ratio=True,
+            )
 
     def create_output(self, path: str = None) -> Optional[bytearray]:
         if path:
