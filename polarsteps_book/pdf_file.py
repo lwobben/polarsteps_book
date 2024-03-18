@@ -37,14 +37,14 @@ class PDFFile(FPDF):
         font_path: str,
         title: str,
         unit: str,
+        margin: int,
         format: Tuple[int, int],  # width, height
         bleed: Optional[int] = None,
-        dev: bool = False,
-        margin: int = 25,
+        mark_bleed_line: bool = False,
     ):
         self.format = format
         self.bleed = bleed
-        self.dev = dev
+        self.mark_bleed_line = mark_bleed_line
         self.margin = margin
 
         self.full_format = (
@@ -60,7 +60,7 @@ class PDFFile(FPDF):
 
     def base_page(self):
         self.add_page()
-        if self.dev and self.bleed:
+        if self.mark_bleed_line and self.bleed:
             self.set_draw_color(r=255, g=0, b=0)
             self.rect(x=self.bleed, y=self.bleed, w=self.format[0], h=self.format[0])
             self.set_draw_color(r=0, g=0, b=0)
@@ -73,10 +73,10 @@ class PDFFile(FPDF):
     ):
         self.base_page()
         if title:
-            self.set_font(size=16)
+            self.set_font(size=28)
             self.multi_cell(w=0, text=title, new_y="Next", align=align)
             self.ln()
-            self.set_font(size=12)
+            self.set_font(size=20)
         if body:
             self.multi_cell(w=0, text=body, align=align)
 
