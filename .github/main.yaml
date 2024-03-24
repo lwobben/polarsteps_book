@@ -1,0 +1,15 @@
+name: Linters and tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  Run-Linters-and-Tests:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo
+      - run: echo "Job triggered by '${{ github.event_name }}'"
+      - run: echo "Job running on '${{ runner.os }}'"
