@@ -11,6 +11,8 @@ class PhotoBook(PDFFile):
         margin=25,
         bleed: int = 3,
         mark_bleed_line: bool = False,
+        vertically_center_text_pages: bool = True,
+        vertical_center_offset_fraction: float = 0.75,
     ):
         super().__init__(
             font_path="polarsteps_book/fonts/FreeSerif.otf",
@@ -20,6 +22,8 @@ class PhotoBook(PDFFile):
             format=(297, 297),
             bleed=bleed,
             mark_bleed_line=mark_bleed_line,
+            vertically_center_text_pages=vertically_center_text_pages,
+            vertical_center_offset_fraction=vertical_center_offset_fraction,
         )
         self.data = data
         self.path = path

@@ -1,8 +1,8 @@
 import io
+from copy import deepcopy
 from typing import Literal, Optional, Tuple, Union
 
 from fpdf import FPDF
-from fpdf.enums import VAlign
 from PIL import Image
 
 
@@ -42,11 +42,15 @@ class PDFFile(FPDF):
         format: Tuple[int, int],  # width, height
         bleed: Optional[int] = None,
         mark_bleed_line: bool = False,
+        vertically_center_text_pages: bool = False,
+        vertical_center_offset_fraction: float = 1.0,
     ):
         self.format = format
         self.bleed = bleed
         self.mark_bleed_line = mark_bleed_line
         self.margin = margin
+        self.vertically_center_text_pages = vertically_center_text_pages
+        self.vertical_center_offset_fraction = vertical_center_offset_fraction
         self.full_format = (
             (format[0] + 2 * bleed, format[1] + 2 * bleed) if bleed else format
         )
@@ -55,7 +59,7 @@ class PDFFile(FPDF):
         font_name = "".join(filter(str.isalpha, font_path))
         self.add_font(font_name, "", font_path)
         self.add_font(font_name, "B", font_path)  # change!!
-        self.set_font(font_name, size=12)
+        self.set_font(font_name, size=20)
         self.text_page(title=title)
         self.set_margin(self.margin)
 
@@ -72,32 +76,35 @@ class PDFFile(FPDF):
         body: str = None,
         align: Literal["J", "L", "R", "C"] = "C",
     ):
+        if self.vertically_center_text_pages:
+            test_pdf = deepcopy(self)
+            test_pdf._insert_text_page(title, body, align)
+            space_left = self.full_format[1] - self.margin - test_pdf.y
+            y_start = (
+                self.margin + (space_left / 2)
+            ) * self.vertical_center_offset_fraction
+        else:
+            y_start = None
+        self._insert_text_page(title, body, align, y_start)
+
+    def _insert_text_page(
+        self,
+        title: str = None,
+        body: str = None,
+        align: Literal["J", "L", "R", "C"] = "C",
+        y_start: Optional[float] = None,
+    ):
         self.base_page()
+        # to do: fix this logic for when text is too big for one page!
+        if y_start is not None:
+            self.set_y(y_start)
         if title:
-            self.set_font(size=28)
+            self.set_font(size=44)
             self.multi_cell(w=0, text=title, new_y="Next", align=align)
             self.ln()
             self.set_font(size=20)
         if body:
             self.multi_cell(w=0, text=body, align=align)
-        self.base_page()
-        # TABLE_DATA = (
-        #     ("First name", "Last name", "Age", "City"),
-        #     ("Jules", "Smith", "34", "San Juan"),
-        #     ("Mary", "Ramos", "45", "Orlando"),
-        #     ("Carlson", "Banks", "19", "Los Angeles"),
-        #     ("Lucas", "Cimon", "31", "Saint-Mathurin-sur-Loire"),
-        # )
-        TABLE_DATA = [["test"]]
-        with self.table(
-            v_align=VAlign.M,
-            line_height=self.full_format[1] - 2 * self.margin,
-            borders_layout="NONE",
-        ) as table:
-            for data_row in TABLE_DATA:
-                row = table.row()
-                for datum in data_row:
-                    row.cell(datum)
 
     def image_page(self, image: Union[str, io.BytesIO]):
         img = ImageFile(image)
