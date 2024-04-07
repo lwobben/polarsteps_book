@@ -1,4 +1,5 @@
 import io
+import re
 from copy import deepcopy
 from typing import Literal, Optional, Tuple, Union
 
@@ -43,14 +44,12 @@ class PDFFile(FPDF):
         bleed: Optional[int] = None,
         mark_bleed_line: bool = False,
         vertically_center_text_pages: bool = False,
-        vertical_center_offset_fraction: float = 1.0,
     ):
         self.format = format
         self.bleed = bleed
         self.mark_bleed_line = mark_bleed_line
         self.margin = margin
         self.vertically_center_text_pages = vertically_center_text_pages
-        self.vertical_center_offset_fraction = vertical_center_offset_fraction
         self.full_format = (
             (format[0] + 2 * bleed, format[1] + 2 * bleed) if bleed else format
         )
@@ -70,6 +69,20 @@ class PDFFile(FPDF):
             self.rect(x=self.bleed, y=self.bleed, w=self.format[0], h=self.format[0])
             self.set_draw_color(r=0, g=0, b=0)
 
+    def _split_string(
+        self, str_in: str, n_parts: int, split_pattern: str = r"\."
+    ) -> list[str]:
+        """
+        Splits a string (`str_in`) on `split_pattern` into `n_parts`.
+        The sizes of the parts will be as equal to each other as possible.
+        """
+        pattern_matches = [m.end() for m in re.finditer(split_pattern, str_in)]
+        split_near = [i * len(str_in) / n_parts for i in range(1, n_parts)]
+        split_on = [min(pattern_matches, key=lambda x: abs(x - i)) for i in split_near]
+        split_on.insert(0, 0)
+        parts = [str_in[i:j].strip() for i, j in zip(split_on, split_on[1:] + [None])]
+        return parts
+
     def text_page(
         self,
         title: str = None,
@@ -78,14 +91,21 @@ class PDFFile(FPDF):
     ):
         if self.vertically_center_text_pages:
             test_pdf = deepcopy(self)
+            page_no_before = test_pdf.page_no()
             test_pdf._insert_text_page(title, body, align)
-            space_left = self.full_format[1] - self.margin - test_pdf.y
-            y_start = (
-                self.margin + (space_left / 2)
-            ) * self.vertical_center_offset_fraction
+            if (page_amount := test_pdf.page_no() - page_no_before) > 1:
+                for idx, p in enumerate(self._split_string(body, page_amount)):
+                    title = title if idx == 0 else None
+                    self.text_page(title, p)
+            else:
+                space_left = self.full_format[1] - self.margin - test_pdf.y
+                offset = (
+                    0.75 if body and title else 1.0
+                )  # to do: calculate offset based on title font height
+                y_start = (self.margin + (space_left / 2)) * offset
+                self._insert_text_page(title, body, align, y_start)
         else:
-            y_start = None
-        self._insert_text_page(title, body, align, y_start)
+            self._insert_text_page(title, body, align)
 
     def _insert_text_page(
         self,
@@ -95,7 +115,6 @@ class PDFFile(FPDF):
         y_start: Optional[float] = None,
     ):
         self.base_page()
-        # to do: fix this logic for when text is too big for one page!
         if y_start is not None:
             self.set_y(y_start)
         if title:
