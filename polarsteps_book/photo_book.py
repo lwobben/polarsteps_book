@@ -14,7 +14,10 @@ class PhotoBook(PDFFile):
         vertically_center_text_pages: bool = True,
     ):
         super().__init__(
-            font_path="polarsteps_book/fonts/FreeSerif.otf",
+            # font_path="polarsteps_book/fonts/FreeSerif.otf",
+            # font_path="polarsteps_book/fonts/ARIAL.TTF",
+            # font_path="polarsteps_book/fonts/avenir_roman_12.otf",
+            font_path="polarsteps_book/fonts/calibri-regular.ttf",
             title=data.title,
             unit="mm",
             margin=margin,
