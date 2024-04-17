@@ -7,7 +7,7 @@ from typing import List, NamedTuple, Optional, TypedDict
 class Step(TypedDict):
     display_name: str
     description: str
-    photo_paths: List[str]
+    photo_paths: Optional[List[str]]
 
 
 class Locations(NamedTuple):
@@ -58,20 +58,27 @@ class PolarStepsData(TripData):
         regions = [r for r in os.listdir(self.path) if os.path.isdir(self.path + r)]
         regions.sort(key=lambda x: x.split("_")[1])
         polar_steps = json.load(open(f"{self.path}/trip.json"))["all_steps"]
+
         steps = []
-        for cnt, r in enumerate(regions):
-            if os.path.isdir(self.path):
-                photo_dir = f"{self.path}/{r}/photos/"
-                polar_step = polar_steps[cnt]
-                assert (
-                    str(polar_step["id"]) == r.split("_")[1]
-                ), f"{str(polar_step['id'])} should be equal to {r.split('_')[1]}"
-                step: Step = {
-                    "display_name": polar_step["display_name"],
-                    "description": polar_step["description"],
-                    "photo_paths": [photo_dir + f for f in os.listdir(photo_dir)],
-                }
-                steps.append(step)
+        id = 1
+        for ps in polar_steps:
+            assert ps["id"] > id
+            id = ps["id"]
+            step: Step = {
+                "display_name": ps["display_name"],
+                "description": ps["description"],
+                "photo_paths": None,
+            }
+
+            for r in regions:
+                if r.split("_")[1] == str(id):
+                    photo_dir = f"{self.path}/{r}/photos/"
+                    step["photo_paths"] = [photo_dir + f for f in os.listdir(photo_dir)]
+                    regions.remove(r)
+                    break
+
+            steps.append(step)
+        assert not regions, f"`regions` should be empty, not {regions}"
         self._steps = steps
 
 

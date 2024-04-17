@@ -8,7 +8,8 @@ class PhotoBook(PDFFile):
         self,
         data: TripData,
         path: str,
-        margin=25,
+        text_margin: int = 40,
+        image_margin: int = 25,
         bleed: int = 3,
         mark_bleed_line: bool = False,
         vertically_center_text_pages: bool = True,
@@ -17,10 +18,12 @@ class PhotoBook(PDFFile):
             # font_path="polarsteps_book/fonts/FreeSerif.otf",
             # font_path="polarsteps_book/fonts/ARIAL.TTF",
             # font_path="polarsteps_book/fonts/avenir_roman_12.otf",
-            font_path="polarsteps_book/fonts/calibri-regular.ttf",
+            # font_path="polarsteps_book/fonts/calibri-regular.ttf",
+            font_path="polarsteps_book/fonts/calibril.ttf",
             title=data.title,
             unit="mm",
-            margin=margin,
+            text_margin=text_margin,
+            image_margin=image_margin,
             format=(297, 297),
             bleed=bleed,
             mark_bleed_line=mark_bleed_line,
@@ -37,14 +40,15 @@ class PhotoBook(PDFFile):
     def add_steps(self):
         for step in self.data.steps:
             self.text_page(body=step["description"], title=step["display_name"])
-            for i in range(0, len(step["photo_paths"]), 2):
-                if i + 1 == len(step["photo_paths"]):
-                    self.image_page(step["photo_paths"][i])
-                    break
-                else:
-                    self.two_images_page(
-                        step["photo_paths"][i], step["photo_paths"][i + 1]
-                    )
+            if step["photo_paths"] is not None:
+                for i in range(0, len(step["photo_paths"]), 2):
+                    if i + 1 == len(step["photo_paths"]):
+                        self.image_page(step["photo_paths"][i])
+                        break
+                    else:
+                        self.two_images_page(
+                            step["photo_paths"][i], step["photo_paths"][i + 1]
+                        )
 
     def output_book(self, output_path):
         self.create_output(path=output_path)
