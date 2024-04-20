@@ -13,6 +13,7 @@ class PhotoBook(PDFFile):
         bleed: int = 3,
         mark_bleed_line: bool = False,
         vertically_center_text_pages: bool = True,
+        page_numbering: bool = True,
     ):
         super().__init__(
             # font_path="polarsteps_book/fonts/FreeSerif.otf",
@@ -28,6 +29,7 @@ class PhotoBook(PDFFile):
             bleed=bleed,
             mark_bleed_line=mark_bleed_line,
             vertically_center_text_pages=vertically_center_text_pages,
+            page_numbering=page_numbering,
         )
         self.data = data
         self.path = path

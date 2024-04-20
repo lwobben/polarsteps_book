@@ -45,12 +45,14 @@ class PDFFile(FPDF):
         bleed: Optional[int] = None,
         mark_bleed_line: bool = False,
         vertically_center_text_pages: bool = False,
+        page_numbering: bool = True,
     ):
         self.format = format
         self.bleed = bleed
         self.mark_bleed_line = mark_bleed_line
         self.text_margin = text_margin
         self.image_margin = image_margin
+        self.page_numbering = page_numbering
         self.vertically_center_text_pages = vertically_center_text_pages
         self.full_format = (
             (format[0] + 2 * bleed, format[1] + 2 * bleed) if bleed else format
@@ -242,6 +244,15 @@ class PDFFile(FPDF):
                 h=img2.target_h,
                 keep_aspect_ratio=True,
             )
+
+    def footer(self):
+        # Gets called automatically by parent class
+        if self.page_numbering and self.page_no() != 1:
+            min_margin = min(self.text_margin, self.image_margin)
+            self.set_y(self.full_format[1] - (min_margin / 3) * 2)
+            self.set_font(size=20)
+            self.cell(w=0, text=str(self.page_no() - 1), align="C")
+            self.set_font(size=24)
 
     def create_output(self, path: str = None) -> Optional[bytearray]:
         if path:
