@@ -34,8 +34,14 @@ class PhotoBook(PDFFile):
         self.data = data
         self.path = path
 
-    def add_geo_map(self):
-        geo_map = GeoMap(self.data.locations)
+    def add_geo_map(
+        self, countries_filter: list[str] = None, continents_filter: list[str] = None
+    ):
+        geo_map = GeoMap(
+            self.data.locations,
+            countries_filter=countries_filter,
+            continents_filter=continents_filter,
+        )
         buf = geo_map.create_buf()
         self.image_page(buf)
 

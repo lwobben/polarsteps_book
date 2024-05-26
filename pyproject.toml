@@ -15,6 +15,7 @@ contextily = "^1.5.0"
 fpdf2 = "^2.7.7"
 pillow = "^10.2.0"
 basemap = "^1.4.1"
+pycountry = "^23.12.11"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.6.2"
