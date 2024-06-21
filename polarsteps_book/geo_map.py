@@ -34,10 +34,10 @@ class GeoMap:
         )
 
         world = gpd.read_file(gpd.datasets.get_path("naturalearth_lowres"))
-        if self.countries_filter is not None:
-            world = world[world["name"].isin(self.countries_filter)]
-        if self.continents_filter is not None:
-            world = world[world["continent"].isin(self.continents_filter)]
+        # if self.countries_filter is not None:
+        #     world = world[world["name"].isin(self.countries_filter)]
+        # if self.continents_filter is not None:
+        #     world = world[world["continent"].isin(self.continents_filter)]
 
         ax = world.plot(color="white", edgecolor="black")
         gdf_points.plot(ax=ax, color=self.COLOR_LIGHT)
