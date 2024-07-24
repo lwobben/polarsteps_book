@@ -18,21 +18,28 @@ gdf = geopandas.GeoDataFrame(
     crs="EPSG:4326",  # <-- additional argument, without it gdf.crs is None
 )
 
-# world = geopandas.read_file(geopandas.datasets.get_path("naturalearth_lowres"))
-world = geopandas.read_file("/Users/lianawobben/Downloads/ne_10m_urban_areas.zip")
+countries = geopandas.read_file(geopandas.datasets.get_path("naturalearth_lowres"))
+urban_areas = geopandas.read_file("/Users/lianawobben/Downloads/ne_10m_urban_areas.zip")
 boundaries = geopandas.read_file(
     "/Users/lianawobben/Downloads/ne_10m_admin_0_boundary_lines_land.zip"
 )
 physical = geopandas.read_file(
     "/Users/lianawobben/Downloads/ne_10m_geography_regions_polys.zip"
 )
+land_lines = geopandas.read_file(
+    "/Users/lianawobben/Downloads/ne_50m_admin_0_boundary_lines_land.zip"
+)
+map_unit = geopandas.read_file(
+    "/Users/lianawobben/Downloads/ne_50m_admin_0_boundary_map_units.zip"
+)
+
 # this will plot South America correctly
 # ax = world[world.continent == 'South America'].plot(color='white', edgecolor='black')
 
 ax = plt.axes()
-physical.plot(ax=ax)
-world.plot(color="white", edgecolor="black", ax=ax)
-boundaries.plot(ax=ax)
+countries.plot(color="white", edgecolor="black", ax=ax)
+urban_areas.plot(color="white", edgecolor="black", ax=ax)
+# map_unit.plot(ax=ax)
 
 # if the CRS of gdf is None this still workss
 gdf.plot(ax=ax)
